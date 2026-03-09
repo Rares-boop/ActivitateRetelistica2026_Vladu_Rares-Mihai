@@ -34,11 +34,11 @@ def receive_full_message(sock):
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
-        print("Connected to server. Type commands (add/get/remove) or 'exit' to quit.")
+        print("Connected to server. Type commands (add/get/remove) or 'quit' to quit.")
 
         while True:
             command = input('client> ').strip()
-            if command.lower() == 'exit':
+            if command.lower() == 'quit':
                 break
 
             s.sendall(command.encode('utf-8'))

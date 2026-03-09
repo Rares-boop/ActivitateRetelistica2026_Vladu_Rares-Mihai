@@ -13,23 +13,62 @@ class State:
     def add(self, key, value):
         with self.lock:
             self.data[key] = value
-        return f"{key} added"
+        return f"OK {key} added"
 
     def get(self, key):
         with self.lock:
-            return self.data.get(key, "Key not found")
+            return self.data.get(key, "ERROR invalid key")
 
     def remove(self, key):
         with self.lock:
             if key in self.data:
                 del self.data[key]
-                return f"{key} removed"
-            return "Key not found"
+                return f"OK {key} removed"
+            return "ERROR invalid key"
+        
+    def list(self):
+        with self.lock:
+            if self.data:
+                return "DATA|" + ",".join(f"{k}={v}" for k, v in self.data.items())
+            return "No data stored"
+    
+    def count(self):
+        with self.lock:
+            return f"DATA {len(self.data)}"
+    
+    def clear(self):
+        with self.lock:
+            self.data.clear()
+        return "All data deleted"
+    
+    def update(self, key, value):
+        with self.lock:
+            if not key in self.data:
+                return "ERROR invalid key"
+            self.data[key] = value
+        return f"{key} updated"
+    
+    def pop(self, key):
+        with self.lock:
+            if key in self.data:
+                value = self.data.pop(key)
+                return f"DATA {value}"
+            return "ERROR invalid key"
 
 state = State()
 
 def process_command(command):
     parts = command.split()
+
+    single_cmd = parts[0]
+
+    if single_cmd == "list":
+        return state.list()
+    elif single_cmd == "count":
+        return state.count()
+    elif single_cmd == "clear":
+        return state.clear()
+        
     if len(parts) < 2:
         return "Invalid command format"
 
@@ -41,6 +80,10 @@ def process_command(command):
         return state.get(key)
     elif cmd == "remove" and len(parts) == 2:
         return state.remove(key)
+    elif cmd == "update" and len(parts) > 2:
+        return state.update(key, ' '.join(parts[2:]))
+    elif cmd == "pop" and len(parts) == 2:
+        return state.pop(key)
     
     return "Invalid command"
 
@@ -75,3 +118,4 @@ def start_server():
 
 if __name__ == "__main__":
     start_server()
+
